@@ -1,0 +1,227 @@
+{
+	"name": "pl_importParquet_daily",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup PCDP File Path",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "[framework].[usp_getFilePath]",
+						"storedProcedureParameters": {
+							"sourceType": {
+								"type": "String",
+								"value": "pcdp"
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlPoolTable1",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Set File Path Variable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup PCDP File Path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varFilePath",
+					"value": {
+						"value": "@activity('Lookup PCDP File Path').output.firstRow.filePath",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute ImportParquet Pipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set Source Type Variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_importParquet3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pContainer": "poc-datalake",
+						"pRelativePath": {
+							"value": "@activity('Lookup PCDP File Path').output.firstRow.filePath",
+							"type": "Expression"
+						},
+						"pSchemaName": {
+							"value": "@concat('staging_',variables('varSourceType'))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set Source Type Variable",
+				"description": "Sets varSourceType = 'cid', 'pcdp' or 'lookup'",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set File Path Variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varSourceType",
+					"value": {
+						"value": "@activity('Lookup PCDP File Path').output.firstRow.sourceType",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Lookup CID File Path",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "[framework].[usp_getFilePath]",
+						"storedProcedureParameters": {
+							"sourceType": {
+								"type": "String",
+								"value": "cid"
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlPoolTable1",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Set File Path Variable 2",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup CID File Path",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varFilePath",
+					"value": {
+						"value": "@activity('Lookup CID File Path').output.firstRow.filePath",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute ImportParquet Pipeline 2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set Source Type Variable 2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_importParquet3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pContainer": "poc-datalake",
+						"pRelativePath": {
+							"value": "@activity('Lookup CID File Path').output.firstRow.filePath",
+							"type": "Expression"
+						},
+						"pSchemaName": {
+							"value": "@concat('staging_',variables('varSourceType'))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set Source Type Variable 2",
+				"description": "Sets varSourceType = 'cid', 'pcdp' or 'lookup'",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set File Path Variable 2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varSourceType",
+					"value": {
+						"value": "@activity('Lookup CID File Path').output.firstRow.sourceType",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pContainer": {
+				"type": "string",
+				"defaultValue": "poc-datalake"
+			}
+		},
+		"variables": {
+			"varFilePath": {
+				"type": "String"
+			},
+			"varSourceType": {
+				"type": "String",
+				"defaultValue": "pcdp"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-26T17:01:20Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

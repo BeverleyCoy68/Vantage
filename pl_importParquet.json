@@ -1,0 +1,79 @@
+{
+	"name": "pl_importParquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Parquet File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get All Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get All Files').output.childItems",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Set variable1",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "varFilename",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get All Files",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_parquet",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			}
+		],
+		"variables": {
+			"varFilename": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-18T21:36:40Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

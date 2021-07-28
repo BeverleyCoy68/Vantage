@@ -1,0 +1,123 @@
+{
+	"name": "pl_deltaProcess_v2",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Tables to Process",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Tables to Process').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "Call Delta Proc",
+							"type": "SqlPoolStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"sqlPool": {
+								"referenceName": "dsqlpvntgprau",
+								"type": "SqlPoolReference"
+							},
+							"typeProperties": {
+								"storedProcedureName": "[framework].[usp_getUpsertScript]",
+								"storedProcedureParameters": {
+									"sourceSchemaName": {
+										"value": "staging_prau",
+										"type": "String"
+									},
+									"targetSchemaName": {
+										"value": "prau_atomic",
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().tableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"debug_yn": {
+										"value": "FALSE",
+										"type": "Boolean"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup Tables to Process",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "[framework].[usp_getTablesToProcess]",
+						"storedProcedureParameters": {
+							"schemaName": {
+								"type": "String",
+								"value": "staging_prau"
+							},
+							"isUpsert": {
+								"type": "Boolean",
+								"value": "TRUE"
+							},
+							"lastNonNull": {
+								"type": "Boolean",
+								"value": null
+							},
+							"groupId": {
+								"type": "Int16",
+								"value": {
+									"value": "@pipeline().parameters.pGroupId",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlMetadataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"pGroupId": {
+				"type": "int"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-01T10:31:23Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

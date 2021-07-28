@@ -1,0 +1,65 @@
+{
+	"name": "CopyPipeline_b4w",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_b4w",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "poc-datalake/test-data/staging_bulk/pcdp/2021/05/13/06/address.parquet"
+					},
+					{
+						"name": "Destination",
+						"value": ".Azure Data Lake Storage Gen2 file"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"allowPolyBase": true,
+						"polyBaseSettings": {
+							"rejectValue": 0,
+							"rejectType": "value",
+							"useTypeDefault": true
+						},
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_b4w",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_b4w",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2021-05-13T15:04:25Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,167 @@
+{
+	"name": "pl_grandchild",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable Filter",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varFilter",
+					"value": {
+						"value": "@concat(pipeline().parameters.pStage, '_', pipeline().parameters.pNumber)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get All Files",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_binary",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter Files",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Set variable Filter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get All Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get All Files').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(startsWith(item().name,variables('varFilter')), endsWith(item().name,'.sql'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter Files').output.Value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "Notebook Script Runner",
+							"type": "SynapseNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebook": {
+									"referenceName": "Notebook Script Runner",
+									"type": "NotebookReference"
+								},
+								"parameters": {
+									"pAccountName": {
+										"value": "stvntgadlspoc01",
+										"type": "string"
+									},
+									"pContainerName": {
+										"value": "poc-datalake",
+										"type": "string"
+									},
+									"pRelativePath": {
+										"value": {
+											"value": "@pipeline().parameters.pRelativePath",
+											"type": "Expression"
+										},
+										"type": "string"
+									},
+									"pFileName": {
+										"value": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"type": "string"
+									}
+								},
+								"snapshot": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pStage": {
+				"type": "string",
+				"defaultValue": "populate"
+			},
+			"pNumber": {
+				"type": "string",
+				"defaultValue": "2"
+			},
+			"pRelativePath": {
+				"type": "string",
+				"defaultValue": "/raw/sql_to_run/"
+			}
+		},
+		"variables": {
+			"varFilter": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-28T16:15:30Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

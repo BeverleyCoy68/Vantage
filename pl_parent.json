@@ -1,0 +1,116 @@
+{
+	"name": "pl_parent",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Stage",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.pStages",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Set variable Stage",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "varStage",
+								"value": {
+									"value": "@item().stage.name",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Execute Pipeline Child",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Set variable Stage",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_child",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pStage": {
+										"value": "@item().stage.name",
+										"type": "Expression"
+									},
+									"pRelativePath": {
+										"value": "@pipeline().parameters.pRelativePath",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pStages": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"stage": {
+							"name": "lookup"
+						},
+						"destination": {
+							"table": "test"
+						}
+					},
+					{
+						"stage": {
+							"name": "populate"
+						},
+						"destination": {
+							"table": "test"
+						}
+					},
+					{
+						"stage": {
+							"name": "union"
+						},
+						"destination": {
+							"table": "test"
+						}
+					},
+					{
+						"stage": {
+							"name": "event"
+						},
+						"destination": {
+							"table": "test"
+						}
+					}
+				]
+			},
+			"pRelativePath": {
+				"type": "string",
+				"defaultValue": "/raw/sql_to_run/"
+			}
+		},
+		"variables": {
+			"varStage": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-27T10:52:21Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

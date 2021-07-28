@@ -1,0 +1,73 @@
+{
+	"name": "devDacc_pocVntg_pcdp_bulk",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy from DACC to Vantage",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "*",
+							"wildcardFileName": "*.parquet",
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						}
+					},
+					"enableStaging": false,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Info",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "synapse-vantage-poc-ukso-prau-001-WorkspaceDefaultStorage",
+								"type": "LinkedServiceReference"
+							},
+							"path": "poc-datalake/pipeline-logs"
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "raw_file_pcdp_test",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "raw_adls_pcdp_test_bulk",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"concurrency": 5,
+		"annotations": [],
+		"lastPublishTime": "2021-05-26T10:43:13Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

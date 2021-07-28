@@ -1,0 +1,170 @@
+{
+	"name": "pl_importParquet3",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Parquet File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get All Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get All Files').output.childItems",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Set variable Filename",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "varFilename",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set variable Table Name",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set variable Filename",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "varTableName",
+								"value": {
+									"value": "@substring(item().name, 0, lastIndexOf(item().name, '.'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Load Parquet to Staging",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set variable Table Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ParquetSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "SqlPoolSink",
+									"preCopyScript": {
+										"value": "@{concat('BEGIN TRY DROP TABLE ', pipeline().parameters.pSchemaName, '.', '[', substring(item().name, 0, lastIndexOf(item().name, '.')), '] END TRY BEGIN CATCH END CATCH')}",
+										"type": "Expression"
+									},
+									"allowPolyBase": true,
+									"polyBaseSettings": {
+										"rejectValue": 0,
+										"rejectType": "value",
+										"useTypeDefault": true
+									},
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_parquet2",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_stagingTable",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Get All Files",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_parquetFolder2",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pContainer": {
+				"type": "string",
+				"defaultValue": "poc-datalake"
+			},
+			"pRelativePath": {
+				"type": "string",
+				"defaultValue": "test-data/staging_bulk/cid/2021/05/19/11/"
+			},
+			"pSchemaName": {
+				"type": "string",
+				"defaultValue": "staging_cid"
+			}
+		},
+		"variables": {
+			"varFilename": {
+				"type": "String"
+			},
+			"varTableName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-26T17:01:20Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,321 @@
+{
+	"name": "pl_recreateTables",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Table to Recreate - staging_prau",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Tables to Process - staging_prau",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Tables to Process - staging_prau').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Drop and Recreate Tables",
+							"type": "SqlPoolStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"sqlPool": {
+								"referenceName": "dsqlpvntgprau",
+								"type": "SqlPoolReference"
+							},
+							"typeProperties": {
+								"storedProcedureName": "framework.usp_getTableDefinition",
+								"storedProcedureParameters": {
+									"schemaName": {
+										"value": {
+											"value": "@item().schemaName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().tableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"debug_yn": {
+										"value": "0"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup Tables to Process - staging_prau",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "[framework].[usp_getTablesToProcess]",
+						"storedProcedureParameters": {
+							"groupId": {
+								"type": "Int32",
+								"value": null
+							},
+							"isUpsert": {
+								"type": "Boolean",
+								"value": null
+							},
+							"lastNonNull": {
+								"type": "Boolean",
+								"value": null
+							},
+							"schemaName": {
+								"type": "String",
+								"value": "staging_prau"
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlMetadataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Table to Recreate - prau_atomic",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Tables to Process - prau_atomic",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Tables to Process - prau_atomic').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Drop and Recreate Tables - prau_atomic",
+							"type": "SqlPoolStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"sqlPool": {
+								"referenceName": "dsqlpvntgprau",
+								"type": "SqlPoolReference"
+							},
+							"typeProperties": {
+								"storedProcedureName": "framework.usp_getTableDefinition",
+								"storedProcedureParameters": {
+									"schemaName": {
+										"value": {
+											"value": "@item().schemaName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().tableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"debug_yn": {
+										"value": "0"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup Tables to Process - prau_atomic",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "[framework].[usp_getTablesToProcess]",
+						"storedProcedureParameters": {
+							"groupId": {
+								"type": "Int32",
+								"value": null
+							},
+							"isUpsert": {
+								"type": "Boolean",
+								"value": null
+							},
+							"lastNonNull": {
+								"type": "Boolean",
+								"value": null
+							},
+							"schemaName": {
+								"type": "String",
+								"value": "prau_atomic"
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlMetadataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Lookup Tables to Process - pcdp_atomic",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "[framework].[usp_getTablesToProcess]",
+						"storedProcedureParameters": {
+							"groupId": {
+								"type": "Int32",
+								"value": null
+							},
+							"isUpsert": {
+								"type": "Boolean",
+								"value": null
+							},
+							"lastNonNull": {
+								"type": "Boolean",
+								"value": null
+							},
+							"schemaName": {
+								"type": "String",
+								"value": "pcdp_atomic"
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlMetadataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Table to Recreate - pcdp_atomic",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Tables to Process - pcdp_atomic",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Tables to Process - pcdp_atomic').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Drop and Recreate Tables - pcdp_atomic",
+							"type": "SqlPoolStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"sqlPool": {
+								"referenceName": "dsqlpvntgprau",
+								"type": "SqlPoolReference"
+							},
+							"typeProperties": {
+								"storedProcedureName": "framework.usp_getTableDefinition",
+								"storedProcedureParameters": {
+									"schemaName": {
+										"value": {
+											"value": "@item().schemaName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().tableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"debug_yn": {
+										"value": "0"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"varStage": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-27T10:52:21Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

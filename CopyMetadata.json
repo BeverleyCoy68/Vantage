@@ -1,0 +1,250 @@
+{
+	"name": "CopyMetadata",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_zaz",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "poc-datalake/raw/sql/Metadata/Metadata.xlsx"
+					},
+					{
+						"name": "Destination",
+						"value": ".Azure Data Lake Storage Gen2 file"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"allowPolyBase": true,
+						"polyBaseSettings": {
+							"rejectValue": 0,
+							"rejectType": "value",
+							"useTypeDefault": true
+						},
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "table_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "table_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "source_column",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_column",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "source_type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "source_length",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_length",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "source_scale",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_scale",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "source_precision",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_precision",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "source_ordinal_position",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_ordinal_position",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "destination_column",
+									"type": "String"
+								},
+								"sink": {
+									"name": "destination_column",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "destination_type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "destination_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "destination_length",
+									"type": "String"
+								},
+								"sink": {
+									"name": "destination_length",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "destination_scale",
+									"type": "String"
+								},
+								"sink": {
+									"name": "destination_scale",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "destination_precision",
+									"type": "String"
+								},
+								"sink": {
+									"name": "destination_precision",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "destination_ordinal_position",
+									"type": "String"
+								},
+								"sink": {
+									"name": "destination_ordinal_position",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "identity_column",
+									"type": "String"
+								},
+								"sink": {
+									"name": "identity_column",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "source_nullable",
+									"type": "String"
+								},
+								"sink": {
+									"name": "source_nullable",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "destination_nullable",
+									"type": "String"
+								},
+								"sink": {
+									"name": "destination_nullable",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_zaz",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_zaz",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2021-05-21T13:40:01Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

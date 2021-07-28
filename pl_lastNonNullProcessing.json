@@ -1,0 +1,214 @@
+{
+	"name": "pl_lastNonNullProcessing",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Tables to Process",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Tables to Process').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "Notebook Last Non-null",
+							"type": "SynapseNotebook",
+							"dependsOn": [
+								{
+									"activity": "Call Drop Table proc",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebook": {
+									"referenceName": "Notebook Last Non-null",
+									"type": "NotebookReference"
+								},
+								"parameters": {
+									"pDatabaseName": {
+										"value": "dsqlpvntgprau",
+										"type": "string"
+									},
+									"pSchemaName": {
+										"value": {
+											"value": "@item().schemaName",
+											"type": "Expression"
+										},
+										"type": "string"
+									},
+									"pTableName": {
+										"value": {
+											"value": "@item().tableName",
+											"type": "Expression"
+										},
+										"type": "string"
+									}
+								},
+								"snapshot": true
+							}
+						},
+						{
+							"name": "Call Drop Table proc",
+							"type": "SqlPoolStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"sqlPool": {
+								"referenceName": "dsqlpvntgprau",
+								"type": "SqlPoolReference"
+							},
+							"typeProperties": {
+								"storedProcedureName": "framework.usp_dropTableIfExists",
+								"storedProcedureParameters": {
+									"schemaName": {
+										"value": {
+											"value": "@item().schemaName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@concat(item().tableName, '_processed')",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"debug_yn": {
+										"value": {
+											"value": "0",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							}
+						},
+						{
+							"name": "Call Swap Table proc",
+							"type": "SqlPoolStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Notebook Last Non-null",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"sqlPool": {
+								"referenceName": "dsqlpvntgprau",
+								"type": "SqlPoolReference"
+							},
+							"typeProperties": {
+								"storedProcedureName": "framework.usp_swapTable",
+								"storedProcedureParameters": {
+									"schemaName": {
+										"value": {
+											"value": "@item().schemaName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@concat(item().tableName, '_processed')",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"debug_yn": {
+										"value": {
+											"value": "0",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup Tables to Process",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "[framework].[usp_getTablesToProcess]",
+						"storedProcedureParameters": {
+							"groupId": {
+								"type": "Int32",
+								"value": null
+							},
+							"isUpsert": {
+								"type": "Boolean",
+								"value": null
+							},
+							"lastNonNull": {
+								"type": "Boolean",
+								"value": "TRUE"
+							},
+							"schemaName": {
+								"type": "String",
+								"value": null
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlMetadataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2021-06-01T13:41:51Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

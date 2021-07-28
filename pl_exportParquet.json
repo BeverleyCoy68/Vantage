@@ -1,0 +1,144 @@
+{
+	"name": "pl_exportParquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Tables to Process",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderStoredProcedureName": "framework.usp_getTablesForParquetOutput",
+						"storedProcedureParameters": {
+							"schemaName": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.pSchemaName",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"dataset": {
+						"referenceName": "SqlMetadataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Parquet File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Tables to Process",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Tables to Process').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Export Table to Parquet",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlPoolSource"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_parquetOutputTable",
+									"type": "DatasetReference",
+									"parameters": {
+										"schemaName": {
+											"value": "@pipeline().parameters.pSchemaName",
+											"type": "Expression"
+										},
+										"tableName": {
+											"value": "@item().tableName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_parquetFolder2",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pContainer": {
+				"type": "string",
+				"defaultValue": "poc-datalake"
+			},
+			"pRelativePath": {
+				"type": "string",
+				"defaultValue": "enriched/parquetOutput/lookups/2021/06/29/22/"
+			},
+			"pSchemaName": {
+				"type": "string",
+				"defaultValue": "lookups"
+			}
+		},
+		"variables": {
+			"varFilename": {
+				"type": "String"
+			},
+			"varTableName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-26T17:01:20Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

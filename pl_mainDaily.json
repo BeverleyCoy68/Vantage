@@ -1,0 +1,332 @@
+{
+	"name": "pl_mainDaily",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Parquet Loader - CID",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set Bulk Flag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_importParquet3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pContainer": "poc-datalake",
+						"pRelativePath": "test-data/staging_bulk/cid/2021/05/19/11/",
+						"pSchemaName": "staging_cid"
+					}
+				}
+			},
+			{
+				"name": "Execute Parquet Loader - Lookup",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set Bulk Flag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_importParquet3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pContainer": "poc-datalake",
+						"pRelativePath": "test-data/staging_bulk/lookups/",
+						"pSchemaName": "staging_lookup"
+					}
+				}
+			},
+			{
+				"name": "Execute Script Runner Pt1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Recreate Tables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_parent",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pStages": {
+							"value": "@pipeline().parameters.pStages1",
+							"type": "Expression"
+						},
+						"pRelativePath": "/raw/sql_to_run/"
+					}
+				}
+			},
+			{
+				"name": "Execute Delta Delete Insert Pt1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Script Runner Pt1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_deltaProcess_v2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pGroupId": "1"
+					}
+				}
+			},
+			{
+				"name": "Execute Last Non-null",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Script Runner Pt 2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_lastNonNullProcessing",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Delta Delete Insert Pt2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Script Runner Pt 3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_deltaProcess_v2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pGroupId": "3"
+					}
+				}
+			},
+			{
+				"name": "Execute Script Runner Pt 3",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Last Non-null",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_parent",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pStages": {
+							"value": "@pipeline().parameters.pStages3",
+							"type": "Expression"
+						},
+						"pRelativePath": "/raw/sql_to_run/"
+					}
+				}
+			},
+			{
+				"name": "Execute Recreate Tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Parquet Loader - Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Execute Parquet Loader - CID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Execute Parquet Loader - PCDP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_recreateTables",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Parquet Loader - PCDP",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set Bulk Flag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_importParquet3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pContainer": "poc-datalake",
+						"pRelativePath": "test-data/staging_delta/pcdp/2021/07/21/15/",
+						"pSchemaName": "staging_pcdp"
+					}
+				}
+			},
+			{
+				"name": "Execute Script Runner Pt 2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Delta Delete Insert Pt1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_parent",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pStages": {
+							"value": "@pipeline().parameters.pStages2",
+							"type": "Expression"
+						},
+						"pRelativePath": "/raw/sql_to_run/"
+					}
+				}
+			},
+			{
+				"name": "Set Bulk Flag",
+				"type": "SqlPoolStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"sqlPool": {
+					"referenceName": "dsqlpvntgprau",
+					"type": "SqlPoolReference"
+				},
+				"typeProperties": {
+					"storedProcedureName": "[framework].[usp_setBulkFlag]",
+					"storedProcedureParameters": {
+						"isBulk": {
+							"value": "false",
+							"type": "Boolean"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pStages1": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"stage": {
+							"name": "lookup"
+						}
+					},
+					{
+						"stage": {
+							"name": "populate"
+						}
+					}
+				]
+			},
+			"pStages2": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"stage": {
+							"name": "union"
+						}
+					},
+					{
+						"stage": {
+							"name": "event"
+						}
+					}
+				]
+			},
+			"pStages3": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"stage": {
+							"name": "post"
+						}
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-06-01T10:31:28Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

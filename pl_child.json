@@ -1,0 +1,85 @@
+{
+	"name": "pl_child",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach Number",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(1,3)",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Set variable Number",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "varNumber",
+								"value": {
+									"value": "@string(item())",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Execute Pipeline Grandchild",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Set variable Number",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_grandchild",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pStage": {
+										"value": "@pipeline().parameters.pStage",
+										"type": "Expression"
+									},
+									"pNumber": {
+										"value": "@item()",
+										"type": "Expression"
+									},
+									"pRelativePath": {
+										"value": "@pipeline().parameters.pRelativePath",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pStage": {
+				"type": "string"
+			},
+			"pRelativePath": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"varNumber": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-13T10:57:21Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,26 @@
+{
+	"name": "Pipeline 1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Parquet Loader - PCDP",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_importParquet3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pContainer": "poc-datalake",
+						"pRelativePath": "test-data/staging_bulk/pcdp/2021/05/19/11/",
+						"pSchemaName": "staging_pcdp"
+					}
+				}
+			}
+		],
+		"annotations": []
+	}
+}

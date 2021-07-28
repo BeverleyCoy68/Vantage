@@ -1,0 +1,84 @@
+{
+	"name": "Pipeline 2",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT [pcdp_file_path] FROM [stats_prau].[pipelineConfig]"
+					},
+					"dataset": {
+						"referenceName": "SqlPoolTable1",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "varFilepath",
+					"value": {
+						"value": "@activity('Lookup1').output.firstRow.pcdp_file_path",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute Pipeline1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set variable1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_importParquet3",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"pContainer": "poc-datalake",
+						"pRelativePath": {
+							"value": "test-data/staging_delta/pcdp/2021/07/21/",
+							"type": "Expression"
+						},
+						"pSchemaName": "staging_pcdp"
+					}
+				}
+			}
+		],
+		"variables": {
+			"varFilepath": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
